@@ -52,18 +52,17 @@ app.get('/todos', function(req, res){
 
 // GET /todos/:id
 app.get('/todos/:id', function(req, res){
-	var todoId = req.params.id;
+	var todoId = parseInt(req.params.id,10);
 
-	var todoItem;
-	todoItem = _.findWhere(todos, {id: todoId});
-
-	if(todoItem){
-		res.json(todoItem);
-	} else {
-		res.status(404);
-		res.send('cann\'t find the info');
-	}
-	
+	db.todo.findById(todoId).then(function(todo){
+		if(!!todo){
+			res.json(todo.toJSON());
+		}else{
+			res.status(404).send();
+		}		
+	}, function(e){
+		res.status(500).send();
+	});	
 });
 
 // POST /todos
@@ -71,31 +70,11 @@ app.post('/todos', function(req, res){
 	//var body = req.body; // use _.pick to only pick description and completed
 	var body = _.pick(req.body, 'description', 'completed');
 
-	// call create on db.todo
-	//   response with 200 and todo
-	//  error e  res.status(400).json(e)
-
-	// if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length == 0){
-	// 	return res.status(400).send();
-	// }
-
 	db.todo.create(body).then(function(todo){
 		res.json(todo.toJSON());
 	}, function(e){
 		res.status(400).json(e);
 	});
-
-
-
-
-	// // set body.description to be trimmed value
-	// body.description = body.description.trim();
-
-	// body.id = todoNextId++;
-	// todos.push(body);
-
-	// console.log('description' + body.description);
-	// res.json(body);
 });
 
 // DELETE /todos/:id
